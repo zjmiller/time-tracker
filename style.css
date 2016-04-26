@@ -1,4 +1,15 @@
+* {
+  margin: 0
+}
+
+.app-container {
+  margin: 50px auto;
+}
+
 .day {
-  margin: 30px;
+  border: 1px solid #eee;
+  display: inline-block;
+  margin-left: -1px;
   padding: 30px;
+  overflow: hidden;
 }
