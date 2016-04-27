@@ -3,13 +3,62 @@
 }
 
 .app-container {
+  border-top: 1px solid #ddd;
+  padding-top: 30px;
+}
+
+.ui-controls-container {
+  box-sizing: border-box;
+  margin: 50px auto;
+  width: 900px
+}
+
+@media (max-width: 1000px) {
+  .ui-controls-container {
+    padding-left: 50px;
+  }
+}
+
+.activity-btn {
+  color: #fff;
+  cursor: pointer;
+  display: inline-block;
+  font: 16px Avenir;
+  height: 40px;
+  line-height: 40px;
+  margin: 5px;
+  position: relative;
+  text-shadow: 0 0 1px #666;
+}
+
+.activity-btn:hover {
+  opacity: 0.5;
+}
+
+.app-container {
   margin: 50px auto;
 }
 
 .day {
-  border: 1px solid #eee;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
   display: inline-block;
-  margin-left: -1px;
-  padding: 30px;
   overflow: hidden;
+  position: relative;
+}
+
+.activity-btn-time-label {
+  background-color: transparent;
+  box-sizing: border-box;
+  color: black;
+  font: 12px Avenir;
+  height: 20px;
+  line-height: 20px;
+  position: absolute;
+  text-align: center;
+  text-shadow: none;
+  top: 40px;
+  left: 0;
+  line-height: normal;
+  width: 100%;
 }
