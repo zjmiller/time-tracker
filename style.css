@@ -2,21 +2,20 @@
   margin: 0
 }
 
-.app-container {
-  border-top: 1px solid #ddd;
-  padding-top: 30px;
-}
-
-.ui-controls-container {
+.ui-controls-container, .today-breakdown {
   box-sizing: border-box;
-  margin: 50px auto;
+  margin: 30px auto;
   width: 900px
 }
 
 @media (max-width: 1000px) {
-  .ui-controls-container {
+  .ui-controls-container, .today-breakdown {
     padding-left: 50px;
   }
+}
+
+.today-breakdown {
+  font: 16px Avenir;
 }
 
 .activity-btn {
@@ -32,11 +31,11 @@
 }
 
 .activity-btn:hover {
-  opacity: 0.5;
+  opacity: 0.9;
 }
 
 .app-container {
-  margin: 50px auto;
+  margin: 0 auto;
 }
 
 .day {

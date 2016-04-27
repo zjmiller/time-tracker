@@ -77,9 +77,27 @@ class ActivityList {
   }
 
   getCurrentlyEngagedActivityOfType(type){
-    return t.activities.find(activity => {
+    return this.activities.find(activity => {
       return activity.type === type  && activity.endTime === null;
     });
+  }
+
+  getAllActivitiesInCurrentDay(){
+    const currentDay = this.extractDay(new Date)
+    const dayActivitiyList = new DayActivityList(currentDay);
+    this.activities.forEach(activity => {
+      if (this.areOnSameDay(activity.startTime, currentDay))
+        dayActivitiyList.activities.push(activity);
+    });
+    return dayActivitiyList;
+  }
+
+  areOnSameDay(d1, d2){
+    return d1.toDateString() === d2.toDateString();
+  }
+
+  extractDay(date){
+    return new Date(date.toDateString());
   }
 }
 
@@ -136,14 +154,6 @@ class TimeTracker extends ActivityList {
     }
 
     return activitiesByDay;
-  }
-
-  areOnSameDay(d1, d2){
-    return d1.toDateString() === d2.toDateString();
-  }
-
-  extractDay(date){
-    return new Date(date.toDateString());
   }
 
   getNextDay(date){
@@ -230,8 +240,9 @@ setInterval(function() {
 function render(){
 
   // clear app container... all render is rerender
-  d3.select('.app-container').html('');
-  d3.select('.ui-controls-container').html('');
+  $('.ui-controls-container').html('');
+  $('.today-activity-chart').html('');
+  $('.app-container').html('');
 
   const daysData = t.groupActivitiesByDay();
 
@@ -330,6 +341,35 @@ function render(){
           return activity.type === d  && activity.endTime === null;
         });
         return activityTokenOfTypeIfCurrentlyEngagedIn ? formatMilliseconds(activityTokenOfTypeIfCurrentlyEngagedIn.getDuration()) : '';
+      });
+
+      const todayTypeData = t.getAllActivitiesInCurrentDay().getTimeEngagedInEachActivityType();
+      todayTypeData.forEach(typeData => {
+        const activityTypeBar = $('<div>')
+          .html(`${typeData.type}`)
+          .css({
+            overflow: 'visible',
+            width: `${typeData.timeEngagedInThisActivityType / 1000}px`,
+            'border-bottom': `3px solid ${t.genColorCodeMap()(typeData.type)}`,
+            'margin': '0 0 10px 10px',
+            position: 'relative'
+          }).appendTo('.today-activity-chart')
+
+        $('<div>')
+          .css({
+            color: t.genColorCodeMap()(typeData.type),
+            position: 'absolute',
+            height: '12px',
+            'line-height': '12px',
+            font: '11px Avenir',
+            bottom: '-6px',
+            left: `${typeData.timeEngagedInThisActivityType / 1000}px`,
+            'padding-left': '2px',
+            width: '200px'
+          })
+          .html(formatMilliseconds(typeData.timeEngagedInThisActivityType))
+          .appendTo(activityTypeBar);
+
       });
 }
 
