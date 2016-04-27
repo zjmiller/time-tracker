@@ -153,6 +153,15 @@ class TimeTracker extends ActivityList {
 }
 
 // seed data
+const b3 = new ActivityToken('reading', new Date('17 April 2016 13:35:00'), new Date('17 April 2016 13:36:00'));
+const b4 = new ActivityToken('programming', new Date('17 April 2016 19:35:00'), new Date('17 April 2016 19:37:00'));
+const b5 = new ActivityToken('programming', new Date('18 April 2016 13:35:00'), new Date('18 April 2016 13:36:00'));
+const b6 = new ActivityToken('writing', new Date('18 April 2016 19:35:00'), new Date('18 April 2016 19:37:00'));
+const b7 = new ActivityToken('reading', new Date('19 April 2016 13:35:00'), new Date('19 April 2016 13:36:00'));
+const b8 = new ActivityToken('writing', new Date('19 April 2016 19:35:00'), new Date('19 April 2016 19:37:00'));
+const b9 = new ActivityToken('chess', new Date('20 April 2016 13:35:00'), new Date('20 April 2016 13:36:00'));
+const b0 = new ActivityToken('programming', new Date('21 April 2016 19:35:00'), new Date('21 April 2016 19:37:00'));
+
 
 const a1 = new ActivityToken('reading', new Date('22 April 2016 13:35:00'), new Date('22 April 2016 13:36:00'));
 const a2 = new ActivityToken('writing', new Date('22 April 2016 19:35:00'), new Date('22 April 2016 19:37:00'));
@@ -165,7 +174,7 @@ const a8 = new ActivityToken('reading', new Date('26 April 2016 13:15:00'), new 
 const a9 = new ActivityToken('programming', new Date('26 April 2016 15:15:00'), new Date('26 April 2016 15:19:00'));
 
 const t = new TimeTracker;
-t.activities.push(a1, a2, a3, a4, a5, a6, a7, a8, a9);
+t.activities.push(b3, b4, b5, b6, b7, b8, b9, b0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
 
 // Visualization code below
 
