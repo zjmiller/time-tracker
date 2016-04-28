@@ -83,22 +83,15 @@ class ActivityList {
   }
 
   getAllActivitiesInCurrentDay(){
-    const currentDay = this.extractDay(new Date)
+    const currentDay = extractDay(new Date)
     const dayActivitiyList = new DayActivityList(currentDay);
     this.activities.forEach(activity => {
-      if (this.areOnSameDay(activity.startTime, currentDay))
+      if (areOnSameDay(activity.startTime, currentDay))
         dayActivitiyList.activities.push(activity);
     });
     return dayActivitiyList;
   }
 
-  areOnSameDay(d1, d2){
-    return d1.toDateString() === d2.toDateString();
-  }
-
-  extractDay(date){
-    return new Date(date.toDateString());
-  }
 }
 
 class DayActivityList extends ActivityList {
@@ -136,11 +129,11 @@ class TimeTracker extends ActivityList {
   groupActivitiesByDay(){
     const activitiesByDay = [];
 
-    let currentDay = this.extractDay(this.activities[0].startTime);
+    let currentDay = extractDay(this.activities[0].startTime);
     activitiesByDay.push(new DayActivityList(currentDay));
 
     this.activities.forEach(activity => {
-      while (!this.areOnSameDay(currentDay, activity.startTime)) {
+      while (!areOnSameDay(currentDay, activity.startTime)) {
         currentDay = this.getNextDay(currentDay);
         activitiesByDay.push(new DayActivityList(currentDay));
       }
@@ -148,7 +141,7 @@ class TimeTracker extends ActivityList {
       activitiesByDay[activitiesByDay.length - 1].activities.push(activity);
     });
 
-    while (!this.areOnSameDay(currentDay, new Date()) && currentDay.getTime() <= Date.now()) {
+    while (!areOnSameDay(currentDay, new Date()) && currentDay.getTime() <= Date.now()) {
       currentDay = this.getNextDay(currentDay);
       activitiesByDay.push(new DayActivityList(currentDay));
     }
@@ -171,8 +164,6 @@ const b7 = new ActivityToken('reading', new Date('19 April 2016 13:35:00'), new 
 const b8 = new ActivityToken('writing', new Date('19 April 2016 19:35:00'), new Date('19 April 2016 19:37:00'));
 const b9 = new ActivityToken('chess', new Date('20 April 2016 13:35:00'), new Date('20 April 2016 13:36:00'));
 const b0 = new ActivityToken('programming', new Date('21 April 2016 19:35:00'), new Date('21 April 2016 19:37:00'));
-
-
 const a1 = new ActivityToken('reading', new Date('22 April 2016 13:35:00'), new Date('22 April 2016 13:36:00'));
 const a2 = new ActivityToken('writing', new Date('22 April 2016 19:35:00'), new Date('22 April 2016 19:37:00'));
 const a3 = new ActivityToken('programming', new Date('23 April 2016 15:15:00'), new Date('23 April 2016 15:18:00'));
@@ -205,10 +196,8 @@ function appLayoutSetup(){
   dayBoxHeight = (windowWidth / 7) - dayBoxMargin;
   dayBoxRadius = Math.min(dayBoxWidth, dayBoxHeight) / 2;
 
-  d3.select('.app-container').style('width', (((dayBoxWidth + dayBoxMargin) * 7) + dayBoxMargin) + 'px')
+  d3.select('.calendar-inner-container').style('width', (((dayBoxWidth + dayBoxMargin) * 7) + dayBoxMargin) + 'px')
 }
-
-appLayoutSetup();
 
 // resize app on window resize
 // not attaching anything heavy-duty to resize event
@@ -231,22 +220,24 @@ setInterval(function() {
 
 // also just refresh entire app periodically to reflect changes
 
-let appRefreshRate = 5000;
+let appRefreshRate = 500000;
 
 setInterval(function() {
     render();
 }, appRefreshRate);
 
+// main render function
+
 function render(){
 
   // clear app container... all render is rerender
-  $('.ui-controls-container').html('');
-  $('.today-activity-chart').html('');
-  $('.app-container').html('');
+  $('.activity-btns-container').html('');
+  $('.today-breakdown-chart').html('');
+  $('.calendar-inner-container').html('');
 
   const daysData = t.groupActivitiesByDay();
 
-  const dayDivs = d3.select('.app-container')
+  const dayDivs = d3.select('.calendar-inner-container')
     .selectAll('div.day')
     .data(daysData)
     .enter()
@@ -311,7 +302,7 @@ function render(){
     .attr('stroke', '#333')
     .attr('stroke-width', 2);
 
-    const buttonOuterDivs = d3.select('.ui-controls-container')
+    const buttonOuterDivs = d3.select('.activity-btns-container')
       .selectAll('div.activity-btn')
       .data(t.activityTypes)
       .enter()
@@ -343,36 +334,82 @@ function render(){
         return activityTokenOfTypeIfCurrentlyEngagedIn ? formatMilliseconds(activityTokenOfTypeIfCurrentlyEngagedIn.getDuration()) : '';
       });
 
-      const todayTypeData = t.getAllActivitiesInCurrentDay().getTimeEngagedInEachActivityType();
-      todayTypeData.forEach(typeData => {
-        const activityTypeBar = $('<div>')
-          .html(`${typeData.type}`)
-          .css({
-            overflow: 'visible',
-            width: `${typeData.timeEngagedInThisActivityType / 1000}px`,
-            'border-bottom': `3px solid ${t.genColorCodeMap()(typeData.type)}`,
-            'margin': '0 0 10px 10px',
-            position: 'relative'
-          }).appendTo('.today-activity-chart')
-
-        $('<div>')
-          .css({
-            color: t.genColorCodeMap()(typeData.type),
-            position: 'absolute',
-            height: '12px',
-            'line-height': '12px',
-            font: '11px Avenir',
-            bottom: '-6px',
-            left: `${typeData.timeEngagedInThisActivityType / 1000}px`,
-            'padding-left': '2px',
-            width: '200px'
-          })
-          .html(formatMilliseconds(typeData.timeEngagedInThisActivityType))
-          .appendTo(activityTypeBar);
-
-      });
+      generateTodayChart()
 }
 
+function generateTodayChart(){
+  const todayData = t.getAllActivitiesInCurrentDay();
+  const todayTypes = todayData.getListOfActivityTypes();
+
+  const barOuterHeight = 20;
+  const barInnerHeight = 10;
+  const labelSize = 14;
+
+  const margin = {top: 20, right: 30, bottom: 20, left: 100};
+  const outerWidth = 900;
+  const outerHeight = (todayTypes.length * barOuterHeight) + margin.top + margin.bottom;
+  const innerWidth = outerWidth - margin.left - margin.right;
+  const innerHeight = outerHeight - margin.top - margin.bottom;
+
+  const todayDataSVG = d3.select('.today-breakdown-chart')
+    .append('svg')
+    .attr('width', outerWidth)
+    .attr('height', outerHeight);
+
+  todayDataSVG.selectAll('text.today-types')
+    .data(todayTypes)
+    .enter()
+    .append('text')
+    .classed('today-types', true)
+    .attr('x', margin.left - 10)
+    .attr('y', (d, i) => margin.top + (i * barOuterHeight))
+    .attr('text-anchor', 'end')
+    .style('font-size', labelSize + 'px')
+    .style('font-family', 'Avenir')
+    .text(d => d);
+
+  const xScale = d3.time.scale();
+  const startTimeForAxis = todayData.activities[0] ? earlierDate(todayAtHour(8), extractHour(todayData.activities[0].startTime)) : todayAtHour(8);
+  xScale.domain([startTimeForAxis, tomorrowAtMidnight()]);
+  xScale.range([0, innerWidth]);
+
+  todayDataSVG.selectAll('rect.activity-bar')
+    .data(todayData.activities)
+    .enter()
+    .append('rect')
+    .attr('x', (d, i) => margin.left + xScale(new Date(d.startTime)))
+    .attr('y', (d, i) => margin.top + (i * barOuterHeight) - (barInnerHeight / 2) - (labelSize / 4))
+    .attr('height', barInnerHeight)
+    .attr('width', d => {
+      const startTimeScale = xScale(new Date(d.startTime));
+      const endTimeOrNow = d.endTime ? new Date(d.endTime) : new Date;
+      const endTimeOrNowScale = xScale(endTimeOrNow);
+      const barWidth = endTimeOrNowScale - startTimeScale;
+      return Math.max(barWidth, 1);
+    })
+    .attr('fill', d => t.genColorCodeMap()(d.type));
+
+  const xAxis = d3.svg.axis();
+  xAxis.scale(xScale);
+  xAxis.orient('bottom');
+  xAxis.ticks(d3.time.hours, 1);
+  xAxis.tickFormat(d => {
+    return d3.time.format('%-I')(d) + (d.getTime() < todayAtHour(12).getTime() || d.getTime() >= tomorrowAtMidnight().getTime()  ? 'am' : 'pm')
+  });
+
+  todayDataSVG.append('g')
+    .classed('axis x-axis', true)
+    .attr('transform', `translate(${margin.left},${innerHeight + margin.top})`)
+    .call(xAxis);
+
+  d3.select('.x-axis')
+    .selectAll('line')
+    .attr('y2', -500)
+}
+
+// Initialize page
+
+appLayoutSetup();
 render();
 
 // Helper functions below
@@ -408,6 +445,37 @@ function dateMonthToAbbr(n){
   }
 }
 
+function todayAtMidnight(){
+  return new Date((new Date()).toDateString());
+}
+
+function tomorrowAtMidnight(){
+  return new Date(todayAtMidnight().getTime() + (1000 * 3600 * 24));
+}
+
+function todayAtHour(hour){
+  return new Date(todayAtMidnight().setHours(hour));
+}
+
+function extractHour(date){
+  const hour = date.getHours()
+  let day = extractDay(date);
+  day.setHours(hour);
+  return day;
+}
+
+function extractDay(date){
+  return new Date(date.toDateString());
+}
+
+function areOnSameDay(d1, d2){
+  return d1.toDateString() === d2.toDateString();
+}
+
+function earlierDate(date1, date2){
+  return date1.getTime() < date2.getTime() ? date1 : date2;
+}
+
 function formatMilliseconds(milliseconds){
   let str = '';
   const hours = Math.floor(milliseconds / (3600 * 1000));
@@ -418,5 +486,3 @@ function formatMilliseconds(milliseconds){
 
   return `${hours ? hours + 'h ' : ''}${minutes ? minutes + 'm ' : ''}${seconds}s`;
 }
-
-window.t = t;
