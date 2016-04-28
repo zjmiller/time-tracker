@@ -220,7 +220,7 @@ setInterval(function() {
 
 // also just refresh entire app periodically to reflect changes
 
-let appRefreshRate = 500000;
+let appRefreshRate = 5000;
 
 setInterval(function() {
     render();
@@ -378,7 +378,7 @@ function generateTodayChart(){
     .enter()
     .append('rect')
     .attr('x', (d, i) => margin.left + xScale(new Date(d.startTime)))
-    .attr('y', (d, i) => margin.top + (i * barOuterHeight) - (barInnerHeight / 2) - (labelSize / 4))
+    .attr('y', (d, i) => margin.top + (todayTypes.indexOf(d.type) * barOuterHeight) - (barInnerHeight / 2) - (labelSize / 4))
     .attr('height', barInnerHeight)
     .attr('width', d => {
       const startTimeScale = xScale(new Date(d.startTime));
