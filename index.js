@@ -71,7 +71,7 @@ class ActivityList {
   }
 
   isCurrentlyEngagedInActivityOfType(type){
-    return undefined !== t.activities.find(activity => {
+    return undefined !== data.activities.find(activity => {
       return activity.type === type  && activity.endTime === null;
     });
   }
@@ -155,27 +155,7 @@ class TimeTracker extends ActivityList {
 
 }
 
-// seed data
-const b3 = new ActivityToken('reading', new Date('17 April 2016 13:35:00'), new Date('17 April 2016 13:36:00'));
-const b4 = new ActivityToken('programming', new Date('17 April 2016 19:35:00'), new Date('17 April 2016 19:37:00'));
-const b5 = new ActivityToken('programming', new Date('18 April 2016 13:35:00'), new Date('18 April 2016 13:36:00'));
-const b6 = new ActivityToken('writing', new Date('18 April 2016 19:35:00'), new Date('18 April 2016 19:37:00'));
-const b7 = new ActivityToken('reading', new Date('19 April 2016 13:35:00'), new Date('19 April 2016 13:36:00'));
-const b8 = new ActivityToken('writing', new Date('19 April 2016 19:35:00'), new Date('19 April 2016 19:37:00'));
-const b9 = new ActivityToken('chess', new Date('20 April 2016 13:35:00'), new Date('20 April 2016 13:36:00'));
-const b0 = new ActivityToken('programming', new Date('21 April 2016 19:35:00'), new Date('21 April 2016 19:37:00'));
-const a1 = new ActivityToken('reading', new Date('22 April 2016 13:35:00'), new Date('22 April 2016 13:36:00'));
-const a2 = new ActivityToken('writing', new Date('22 April 2016 19:35:00'), new Date('22 April 2016 19:37:00'));
-const a3 = new ActivityToken('programming', new Date('23 April 2016 15:15:00'), new Date('23 April 2016 15:18:00'));
-const a4 = new ActivityToken('reading', new Date('25 April 2016 09:35:00'), new Date('25 April 2016 09:36:00'));
-const a5 = new ActivityToken('writing', new Date('25 April 2016 19:35:00'), new Date('25 April 2016 19:40:00'));
-const a6 = new ActivityToken('chess', new Date('25 April 2016 22:35:00'), new Date('25 April 2016 22:37:00'));
-const a7 = new ActivityToken('programming', new Date('25 April 2016 23:57:00'), new Date('25 April 2016 23:59:00'));
-const a8 = new ActivityToken('reading', new Date('26 April 2016 13:15:00'), new Date('26 April 2016 13:15:30'));
-const a9 = new ActivityToken('programming', new Date('26 April 2016 15:15:00'), new Date('26 April 2016 15:19:00'));
-
-const t = new TimeTracker;
-t.activities.push(b3, b4, b5, b6, b7, b8, b9, b0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+const data = genSeedData(Math.ceil(Math.random() * 10) + 5);
 
 // Visualization code below
 
@@ -235,7 +215,7 @@ function render(){
   $('.today-breakdown-chart').html('');
   $('.calendar-inner-container').html('');
 
-  const daysData = t.groupActivitiesByDay();
+  const daysData = data.groupActivitiesByDay();
 
   const dayDivs = d3.select('.calendar-inner-container')
     .selectAll('div.day')
@@ -289,7 +269,7 @@ function render(){
     .classed('activity-path', true)
     .attr('d', (d, i) => {
       const arc = d3.svg.arc();
-      const mostTimeSpentEngagedDuringSingleDay = Math.max(...daysData.map(day => t.getTotalTimeEngaged(day.activities)));
+      const mostTimeSpentEngagedDuringSingleDay = Math.max(...daysData.map(day => data.getTotalTimeEngaged(day.activities)));
       arc.outerRadius((dayBoxRadius - Math.max(dayBoxHorizontalPadding, dayBoxVerticalPadding)) * Math.sqrt(d.timeEngagedInAllActivityTypes / (mostTimeSpentEngagedDuringSingleDay)) - 2);
       arc.innerRadius(0);
       arc.startAngle(cachedAngle);
@@ -298,28 +278,28 @@ function render(){
       cachedAngle = endAngle % (Math.PI * 2);
       return arc(d, i);
     })
-    .attr('fill', (d, i) => t.genColorCodeMap()(d.type))
+    .attr('fill', (d, i) => data.genColorCodeMap()(d.type))
     .attr('stroke', '#333')
     .attr('stroke-width', 2);
 
     const buttonOuterDivs = d3.select('.activity-btns-container')
       .selectAll('div.activity-btn')
-      .data(t.activityTypes)
+      .data(data.activityTypes)
       .enter()
       .append('div')
       .classed('activity-btn', true)
       .on('click', d => {
-        if (!t.isCurrentlyEngagedInActivityOfType(d)) t.addActivityToken(d);
-        else t.stopEngagingInActivityOfType(d)
+        if (!data.isCurrentlyEngagedInActivityOfType(d)) data.addActivityToken(d);
+        else data.stopEngagingInActivityOfType(d)
         render();
       });
 
     buttonOuterDivs.append('div')
       .style('opacity', d => {
-        return t.isCurrentlyEngagedInActivityOfType(d) ? 0.5 : 1;
+        return data.isCurrentlyEngagedInActivityOfType(d) ? 0.5 : 1;
       })
       .html(d => d)
-      .style('background-color', d => t.genColorCodeMap()(d))
+      .style('background-color', d => data.genColorCodeMap()(d))
       .style('padding', '0 10px')
 
     buttonOuterDivs.append(d => {
@@ -328,7 +308,7 @@ function render(){
         return el;
       })
       .html(d => {
-        const activityTokenOfTypeIfCurrentlyEngagedIn = t.activities.find(activity => {
+        const activityTokenOfTypeIfCurrentlyEngagedIn = data.activities.find(activity => {
           return activity.type === d  && activity.endTime === null;
         });
         return activityTokenOfTypeIfCurrentlyEngagedIn ? formatMilliseconds(activityTokenOfTypeIfCurrentlyEngagedIn.getDuration()) : '';
@@ -338,7 +318,7 @@ function render(){
 }
 
 function generateTodayChart(){
-  const todayData = t.getAllActivitiesInCurrentDay();
+  const todayData = data.getAllActivitiesInCurrentDay();
   const todayTypes = todayData.getListOfActivityTypes();
 
   const barOuterHeight = 20;
@@ -387,7 +367,7 @@ function generateTodayChart(){
       const barWidth = endTimeOrNowScale - startTimeScale;
       return Math.max(barWidth, 1);
     })
-    .attr('fill', d => t.genColorCodeMap()(d.type));
+    .attr('fill', d => data.genColorCodeMap()(d.type));
 
   const xAxis = d3.svg.axis();
   xAxis.scale(xScale);
@@ -468,6 +448,10 @@ function extractDay(date){
   return new Date(date.toDateString());
 }
 
+function extractDayNDaysAgo(date, n){
+  return new Date(extractDay(date).getTime() - n * ((1000 * 3600 * 24)));
+}
+
 function areOnSameDay(d1, d2){
   return d1.toDateString() === d2.toDateString();
 }
@@ -485,4 +469,31 @@ function formatMilliseconds(milliseconds){
   const seconds = Math.floor(remainingMilliseconds / 1000);
 
   return `${hours ? hours + 'h ' : ''}${minutes ? minutes + 'm ' : ''}${seconds}s`;
+}
+
+function genSeedData(days){
+  const seedData = new TimeTracker;
+  const wakeUpTime = 7;
+  const maxActivityTokensPerDay = 5;
+  const twoHours = 2000 * 3600;
+  const minActivityLength = 250 * 3600; // 15 min
+
+  let currentTime;
+
+  for(let i = 1; i <= days; i++){
+    const day = extractDayNDaysAgo(new Date, days - i);
+    currentTime = day;
+    currentTime.setHours(7);
+    const numOfActivityTokens = Math.floor(Math.random() * maxActivityTokensPerDay + 1);
+    for(let j = 0; j < numOfActivityTokens; j++){
+      const randType = seedData.activityTypes[Math.floor(Math.random() * seedData.activityTypes.length)];
+      const randStartTime = new Date(currentTime.getTime() + Math.floor(Math.random() * twoHours));
+      currentTime = randStartTime;
+      const randEndTime = new Date(currentTime.getTime() + Math.floor(Math.random() * twoHours) + minActivityLength);
+      seedData.activities.push(new ActivityToken(randType, randStartTime, randEndTime));
+      currentTime = randEndTime;
+    }
+  }
+
+  return seedData;
 }
