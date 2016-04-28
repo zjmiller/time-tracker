@@ -92,6 +92,16 @@ class ActivityList {
     return dayActivitiyList;
   }
 
+  getAllActivitiesOnDate(date){
+    date = extractDay(date)
+    const dayActivitiyList = new DayActivityList(date);
+    this.activities.forEach(activity => {
+      if (areOnSameDay(activity.startTime, date))
+        dayActivitiyList.activities.push(activity);
+    });
+    return dayActivitiyList;
+  }
+
 }
 
 class DayActivityList extends ActivityList {
@@ -207,6 +217,8 @@ setInterval(function() {
 }, appRefreshRate);
 
 // main render function
+let dayBeingDisplayed = extractDay(new Date);
+let nextBtnWorks = false;
 
 function render(){
 
@@ -314,11 +326,11 @@ function render(){
         return activityTokenOfTypeIfCurrentlyEngagedIn ? formatMilliseconds(activityTokenOfTypeIfCurrentlyEngagedIn.getDuration()) : '';
       });
 
-      generateTodayChart()
+      generateTodayChart(dayBeingDisplayed);
 }
 
-function generateTodayChart(){
-  const todayData = data.getAllActivitiesInCurrentDay();
+function generateTodayChart(date){
+  const todayData = data.getAllActivitiesOnDate(date);
   const todayTypes = todayData.getListOfActivityTypes();
 
   const barOuterHeight = 20;
@@ -349,9 +361,26 @@ function generateTodayChart(){
     .text(d => d);
 
   const xScale = d3.time.scale();
-  const startTimeForAxis = todayData.activities[0] ? earlierDate(todayAtHour(8), extractHour(todayData.activities[0].startTime)) : todayAtHour(8);
-  xScale.domain([startTimeForAxis, tomorrowAtMidnight()]);
+  const startTimeForAxis = todayData.activities[0] ? earlierDate(dayAtHour(date, 8), extractHour(todayData.activities[0].startTime)) : dayAtHour(date, 8);
+  xScale.domain([startTimeForAxis, nextDayAtMidnight(date)]);
   xScale.range([0, innerWidth]);
+
+  const xAxis = d3.svg.axis();
+  xAxis.scale(xScale);
+  xAxis.orient('bottom');
+  xAxis.ticks(d3.time.hours, 1);
+  xAxis.tickFormat(d => {
+    return d3.time.format('%-I')(d) + (d.getTime() < todayAtHour(12).getTime() || d.getTime() >= tomorrowAtMidnight().getTime()  ? 'am' : 'pm')
+  });
+
+  todayDataSVG.append('g')
+    .classed('axis x-axis', true)
+    .attr('transform', `translate(${margin.left},${innerHeight + margin.top})`)
+    .call(xAxis);
+
+  d3.select('.x-axis')
+    .selectAll('line')
+    .attr('y2', -500);
 
   todayDataSVG.selectAll('rect.activity-bar')
     .data(todayData.activities)
@@ -369,23 +398,33 @@ function generateTodayChart(){
     })
     .attr('fill', d => data.genColorCodeMap()(d.type));
 
-  const xAxis = d3.svg.axis();
-  xAxis.scale(xScale);
-  xAxis.orient('bottom');
-  xAxis.ticks(d3.time.hours, 1);
-  xAxis.tickFormat(d => {
-    return d3.time.format('%-I')(d) + (d.getTime() < todayAtHour(12).getTime() || d.getTime() >= tomorrowAtMidnight().getTime()  ? 'am' : 'pm')
-  });
-
-  todayDataSVG.append('g')
-    .classed('axis x-axis', true)
-    .attr('transform', `translate(${margin.left},${innerHeight + margin.top})`)
-    .call(xAxis);
-
-  d3.select('.x-axis')
-    .selectAll('line')
-    .attr('y2', -500)
+  $('.today-breakdown-date').html(d3.time.format('%a %b %e')(dayBeingDisplayed));
+  if (areOnSameDay(dayBeingDisplayed, new Date)) {
+    $('.today-breakdown-date').html('Today');
+    $('.js-breakdown-nav-btn-next').css({
+      cursor: 'default',
+      opacity: 0.25});
+    nextBtnWorks = false;
+  } else {
+    $('.js-breakdown-nav-btn-next').css({
+      cursor: 'pointer',
+      opacity: 1});
+    nextBtnWorks = true;
+  }
 }
+
+$('.js-breakdown-nav-btn-prev').on('click', _ => {
+  dayBeingDisplayed = extractDayNDaysAgo(dayBeingDisplayed, 1);
+  appLayoutSetup();
+  render();
+});
+
+$('.js-breakdown-nav-btn-next').on('click', _ => {
+  if (!nextBtnWorks) return;
+  dayBeingDisplayed = extractDayNDaysAgo(dayBeingDisplayed, -1);
+  appLayoutSetup();
+  render();
+});
 
 // Initialize page
 
@@ -429,12 +468,25 @@ function todayAtMidnight(){
   return new Date((new Date()).toDateString());
 }
 
+function dateAtMidnight(date){
+  return new Date(date.toDateString());
+}
+
+function nextDayAtMidnight(date){
+  return new Date(dateAtMidnight(date).getTime() + (1000 * 3600 * 24));
+}
+
 function tomorrowAtMidnight(){
   return new Date(todayAtMidnight().getTime() + (1000 * 3600 * 24));
 }
 
 function todayAtHour(hour){
   return new Date(todayAtMidnight().setHours(hour));
+}
+
+function dayAtHour(date, hour){
+  const day = extractDay(date);
+  return new Date(date.setHours(hour));
 }
 
 function extractHour(date){

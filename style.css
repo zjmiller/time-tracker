@@ -46,13 +46,22 @@
   width: 100%;
 }
 
-.today-breakdown-heading {
+.heading {
   font-family: Avenir;
   text-align: center;
 }
 
 .today-breakdown-chart {
   margin-top: 20px;
+}
+
+.breakdown-nav-btn {
+  background-color: #f8f8f8;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  cursor: pointer;
+  font: 12px Avenir;
+  padding: 2px 6px;
 }
 
 .axis line {
@@ -81,4 +90,14 @@
   display: inline-block;
   overflow: hidden;
   position: relative;
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+  -khtml-user-select: none;    /* Konqueror */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* Internet Explorer/Edge */
+  user-select: none;           /* Non-prefixed version, currently
+                                  not supported by any browser */
 }
