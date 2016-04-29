@@ -447,7 +447,7 @@ function generateTodayChart(date){
   xAxis.orient('bottom');
   xAxis.ticks(d3.time.hours, 1);
   xAxis.tickFormat(d => {
-    return d3.time.format('%-I')(d) + (d.getTime() < todayAtHour(12).getTime() || d.getTime() >= tomorrowAtMidnight().getTime()  ? 'am' : 'pm')
+    return d3.time.format('%-I')(d) + (d < dayAtHour(date, 12) || d >= tomorrowFromDate(date)  ? 'am' : 'pm')
   });
 
   todayDataSVG.append('g')
@@ -463,6 +463,7 @@ function generateTodayChart(date){
     .data(todayData.activities)
     .enter()
     .append('rect')
+    .classed('activity-bar', true)
     .attr('x', (d, i) => margin.left + xScale(new Date(d.startTime)))
     .attr('y', (d, i) => margin.top + (todayTypes.indexOf(d.type) * barOuterHeight) - (barInnerHeight / 2) - (labelSize / 4))
     .attr('height', barInnerHeight)
@@ -473,7 +474,9 @@ function generateTodayChart(date){
       const barWidth = endTimeOrNowScale - startTimeScale;
       return Math.max(barWidth, 1);
     })
-    .attr('fill', d => data.genColorCodeMap()(d.type));
+    .attr('fill', d => data.genColorCodeMap()(d.type))
+    .attr('data-target', '#myModal')
+    .attr('data-toggle', 'modal');
 
   $('.today-breakdown-date').html(d3.time.format('%a %b %e')(dayBeingDisplayed));
   if (areOnSameDay(dayBeingDisplayed, new Date)) {
@@ -579,6 +582,10 @@ function extractDay(date){
 
 function extractDayNDaysAgo(date, n){
   return new Date(extractDay(date).getTime() - n * ((1000 * 3600 * 24)));
+}
+
+function tomorrowFromDate(date){
+  return extractDayNDaysAgo(date, -1);
 }
 
 function areOnSameDay(d1, d2){

@@ -58,6 +58,14 @@
   margin-top: 20px;
 }
 
+.activity-bar {
+  cursor: pointer;
+}
+
+.activity-bar:hover {
+  opacity: 0.5;
+}
+
 .breakdown-nav-btn {
   background-color: #f8f8f8;
   border: 1px solid #eee;
