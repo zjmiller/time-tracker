@@ -10,7 +10,7 @@
 
 @media (max-width: 1000px) {
   .activity-btns-container, .today-breakdown {
-    padding-left: 50px;
+    padding-left: 20px;
   }
 }
 
@@ -80,6 +80,10 @@
   font: 100 12px Avenir;
 }
 
+.calendar-toggle-container {
+  text-align: center;
+}
+
 .calendar-inner-container {
   margin: 20px auto;
 }
@@ -90,6 +94,12 @@
   display: inline-block;
   overflow: hidden;
   position: relative;
+}
+
+.weekday-label {
+  box-sizing: border-box;
+  display: inline-block;
+  text-align: center;
 }
 
 .noselect {

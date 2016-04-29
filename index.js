@@ -103,7 +103,29 @@ class ActivityList {
   }
 
   getEarliestStartTime() {
-    return this.activities.map(activity => activity.startTime).sort(d3.ascending)[0];
+    return (
+      this.activities
+        .map(activity => activity.startTime)
+        .sort(d3.ascending)[0]
+    );
+  }
+
+  getEarliestStartTimeForCertainActivityType(activityType) {
+    return (
+      this.activities
+        .filter(activity => activity.type === activityType)
+        .map(activity => activity.startTime)
+        .sort(d3.ascending)[0]
+    );
+  }
+
+  getEarliestStartTimeForArrayOfActivityTypes(activityTypeArr) {
+    return (
+      this.activities
+        .filter(activity => activityTypeArr.indexOf(activity.type) > -1)
+        .map(activity => activity.startTime)
+        .sort(d3.ascending)[0]
+    );
   }
 
 }
@@ -148,7 +170,7 @@ class TimeTracker extends ActivityList {
 
     this.activities.forEach(activity => {
       while (!areOnSameDay(currentDay, activity.startTime)) {
-        currentDay = this.getNextDay(currentDay);
+        currentDay = getNextDay(currentDay);
         activitiesByDay.push(new DayActivityList(currentDay));
       }
 
@@ -156,15 +178,34 @@ class TimeTracker extends ActivityList {
     });
 
     while (!areOnSameDay(currentDay, new Date()) && currentDay.getTime() <= Date.now()) {
-      currentDay = this.getNextDay(currentDay);
+      currentDay = getNextDay(currentDay);
       activitiesByDay.push(new DayActivityList(currentDay));
     }
 
     return activitiesByDay;
   }
 
-  getNextDay(date){
-    return new Date(date.getTime() + (3600 * 1000 * 24));
+  groupCertainActivitiesByDay(activityTypeArr){
+    const activitiesByDay = [];
+
+    let currentDay = extractDay(this.getEarliestStartTime());
+    activitiesByDay.push(new DayActivityList(currentDay));
+
+    this.activities.filter(activity => activityTypeArr.indexOf(activity.type) > -1).forEach(activity => {
+      while (!areOnSameDay(currentDay, activity.startTime)) {
+        currentDay = getNextDay(currentDay);
+        activitiesByDay.push(new DayActivityList(currentDay));
+      }
+
+      activitiesByDay[activitiesByDay.length - 1].activities.push(activity);
+    });
+
+    while (!areOnSameDay(currentDay, new Date()) && currentDay.getTime() <= Date.now()) {
+      currentDay = getNextDay(currentDay);
+      activitiesByDay.push(new DayActivityList(currentDay));
+    }
+
+    return activitiesByDay;
   }
 
 }
@@ -184,6 +225,7 @@ let dayBoxRadius;
 
 function appLayoutSetup(){
   let windowWidth = Math.max($(window).width(), 920);
+  windowWidth = Math.min(windowWidth, 1200);
   windowWidth -= 100;
 
   dayBoxWidth = (windowWidth / 7) - dayBoxMargin;
@@ -224,6 +266,25 @@ setInterval(function() {
 let dayBeingDisplayed = extractDay(new Date);
 let nextBtnWorks = false;
 
+const types = data.activityTypes;
+
+types.forEach((type, i) => {
+  const span = $('<span>')
+    .css({'font': '14px Avenir', 'margin-left': i > 0 ? '20px' : 0})
+    .append(type);
+
+  $('<input>')
+    .addClass('js-type-checkbox')
+    .attr('type', 'checkbox')
+    .attr('data-type', type)
+    .css({'margin-left': '3px'})
+    .prop('checked', true)
+    .on('click', _ => render())
+    .appendTo(span);
+
+  span.appendTo('.calendar-toggle-container');
+});
+
 function render(){
 
   // clear app container... all render is rerender
@@ -231,7 +292,36 @@ function render(){
   $('.today-breakdown-chart').html('');
   $('.calendar-inner-container').html('');
 
-  const daysData = data.groupActivitiesByDay();
+  let checkedActivityTypes = [];
+
+  $('.js-type-checkbox').each((i, e) => {
+    const $e = $(e);
+    if ($e.prop('checked')) checkedActivityTypes.push($e.attr('data-type'));
+  });
+
+  const daysData = data.groupCertainActivitiesByDay(checkedActivityTypes);
+
+  d3.select('.calendar-inner-container')
+    .selectAll('div.weekday-label')
+    .data(['Sun', 'Mon', 'Tue', 'Wed', 'Thur', 'Fri', 'Sat'])
+    .enter()
+    .append('div')
+    .classed('weekday-label', true)
+    .style({
+      color: '#bbb',
+      font: '12px Avenir',
+      width: dayBoxWidth + 'px'
+    })
+    .style('margin-left', (d, i) => {
+      if (i === 0) {
+        return 0;
+      } else {
+        return dayBoxMargin + 'px';
+      }
+    })
+    .style('margin-bottom', '-20px')
+    .style('padding', `${dayBoxVerticalPadding}px ${dayBoxHorizontalPadding}px`)
+    .html(d => d)
 
   const dayDivs = d3.select('.calendar-inner-container')
     .selectAll('div.day')
@@ -516,6 +606,10 @@ function earlierDate(date1, date2){
   return date1.getTime() < date2.getTime() ? date1 : date2;
 }
 
+function getNextDay(date){
+  return new Date(date.getTime() + (3600 * 1000 * 24));
+}
+
 function formatMilliseconds(milliseconds){
   let str = '';
   const hours = Math.floor(milliseconds / (3600 * 1000));
@@ -539,7 +633,7 @@ function genSeedData(days){
   for(let i = 1; i <= days; i++){
     const day = extractDayNDaysAgo(new Date, days - i);
     currentTime = day;
-    currentTime.setHours(7);
+    currentTime.setHours(wakeUpTime);
     const numOfActivityTokens = Math.floor(Math.random() * maxActivityTokensPerDay + 1);
     for(let j = 0; j < numOfActivityTokens; j++){
       const randType = seedData.activityTypes[Math.floor(Math.random() * seedData.activityTypes.length)];
