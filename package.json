@@ -15,6 +15,7 @@
     "watchify": "^3.7.0"
   },
   "dependencies": {
+    "bootstrap": "^3.3.6",
     "d3": "^3.5.16",
     "jquery": "^2.2.3"
   }
