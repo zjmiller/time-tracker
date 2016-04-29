@@ -307,21 +307,10 @@ function render(){
     .enter()
     .append('div')
     .classed('weekday-label', true)
-    .style({
-      color: '#bbb',
-      font: '12px Avenir',
-      width: dayBoxWidth + 'px'
-    })
-    .style('margin-left', (d, i) => {
-      if (i === 0) {
-        return 0;
-      } else {
-        return dayBoxMargin + 'px';
-      }
-    })
-    .style('margin-bottom', '-20px')
+    .style('margin-left', dayBoxMargin)
     .style('padding', `${dayBoxVerticalPadding}px ${dayBoxHorizontalPadding}px`)
-    .html(d => d)
+    .style('width', dayBoxWidth + 'px')
+    .html(d => d);
 
   const dayDivs = d3.select('.calendar-inner-container')
     .selectAll('div.day')
@@ -351,20 +340,16 @@ function render(){
     });
 
   dayDivs.append('div')
-    .style('font', '500 16px Avenir')
-    .style('text-align', 'center')
+    .classed('day-label', true)
     .style({
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
       height: dayBoxVerticalPadding + 'px',
       'line-height': dayBoxVerticalPadding + 'px'
     })
     .html(d => `${dateMonthToAbbr(d.day.getMonth())} ${d.day.getDate()}`);
 
   let cachedAngle = 0;
-
+  const arc = d3.svg.arc();
+  const mostTimeSpentEngagedDuringSingleDay = Math.max(...daysData.map(day => data.getTotalTimeEngaged(day.activities)));
   d3.selectAll('svg.svg-day')
     .selectAll('g.activity')
     .data(d => d.getTimeEngagedInEachActivityType())
@@ -374,8 +359,6 @@ function render(){
     .append('path')
     .classed('activity-path', true)
     .attr('d', (d, i) => {
-      const arc = d3.svg.arc();
-      const mostTimeSpentEngagedDuringSingleDay = Math.max(...daysData.map(day => data.getTotalTimeEngaged(day.activities)));
       arc.outerRadius((dayBoxRadius - Math.max(dayBoxHorizontalPadding, dayBoxVerticalPadding)) * Math.sqrt(d.timeEngagedInAllActivityTypes / (mostTimeSpentEngagedDuringSingleDay)) - 2);
       arc.innerRadius(0);
       arc.startAngle(cachedAngle);
@@ -401,12 +384,12 @@ function render(){
       });
 
     buttonOuterDivs.append('div')
+      .classed('activity-btn-inner', true)
+      .style('background-color', d => data.genColorCodeMap()(d))
       .style('opacity', d => {
         return data.isCurrentlyEngagedInActivityOfType(d) ? 0.5 : 1;
       })
       .html(d => d)
-      .style('background-color', d => data.genColorCodeMap()(d))
-      .style('padding', '0 10px')
 
     buttonOuterDivs.append(d => {
         const el = document.createElement('div');

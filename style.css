@@ -26,6 +26,10 @@
   text-shadow: 0 0 1px #666;
 }
 
+.activity-btn-inner {
+  padding: 0 10px;
+}
+
 .activity-btn:hover {
   opacity: 0.9;
 }
@@ -38,11 +42,10 @@
   height: 20px;
   line-height: 20px;
   position: absolute;
+    left: 0;
+    top: 40px;
   text-align: center;
   text-shadow: none;
-  top: 40px;
-  left: 0;
-  line-height: normal;
   width: 100%;
 }
 
@@ -85,7 +88,7 @@
 }
 
 .calendar-inner-container {
-  margin: 20px auto;
+  margin: 0 auto;
 }
 
 .day {
@@ -96,9 +99,21 @@
   position: relative;
 }
 
+.day-label {
+  font: 500 16px Avenir;
+  position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  text-align: center;
+}
+
 .weekday-label {
   box-sizing: border-box;
+  color: #bbb;
   display: inline-block;
+  font: 12px Avenir;
+  margin-bottom: -20px;
   text-align: center;
 }
 
