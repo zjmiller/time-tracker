@@ -138,9 +138,9 @@ class DayActivityList extends ActivityList {
 }
 
 class TimeTracker extends ActivityList {
-  constructor(){
+  constructor(activityTypeArr){
     super();
-    this.activityTypes = ['reading', 'programming', 'writing', 'chess'];
+    this.activityTypes = activityTypeArr;
   }
 
   genColorCodeMap(activities = this.activities){
@@ -210,6 +210,19 @@ class TimeTracker extends ActivityList {
 
 }
 
+class ActivityType {
+  constructor(name){
+    ActivityType.numberOfTypes++;
+    this.name = name;
+    this.id = ActivityType.numberOfTypes;
+  }
+}
+ActivityType.numberOfTypes = 0;
+
+const chess = new ActivityType('chess');
+const programming = new ActivityType('programming');
+const reading = new ActivityType('reading');
+const writing = new ActivityType('writing');
 const data = genSeedData(Math.ceil(Math.random() * 10) + 5);
 
 // Visualization code below
@@ -256,7 +269,7 @@ setInterval(function() {
 
 // also just refresh entire app periodically to reflect changes
 
-let appRefreshRate = 5000;
+let appRefreshRate = 500000;
 
 setInterval(function() {
     render();
@@ -271,12 +284,12 @@ const types = data.activityTypes;
 types.forEach((type, i) => {
   const span = $('<span>')
     .css({'font': '14px Avenir', 'margin-left': i > 0 ? '20px' : 0})
-    .append(type);
+    .append(type.name);
 
   $('<input>')
     .addClass('js-type-checkbox')
     .attr('type', 'checkbox')
-    .attr('data-type', type)
+    .attr('data-type', type.id)
     .css({'margin-left': '3px'})
     .prop('checked', true)
     .on('click', _ => render())
@@ -292,11 +305,14 @@ function render(){
   $('.today-breakdown-chart').html('');
   $('.calendar-inner-container').html('');
 
-  let checkedActivityTypes = [];
-
+  const checkedActivityTypes = [];
   $('.js-type-checkbox').each((i, e) => {
     const $e = $(e);
-    if ($e.prop('checked')) checkedActivityTypes.push($e.attr('data-type'));
+    if ($e.prop('checked')) {
+      const activityTypeId = Number($e.attr('data-type'));
+      const activityType = data.activityTypes.find(d => d.id === activityTypeId);
+      checkedActivityTypes.push(activityType);
+    }
   });
 
   const daysData = data.groupCertainActivitiesByDay(checkedActivityTypes);
@@ -389,7 +405,7 @@ function render(){
       .style('opacity', d => {
         return data.isCurrentlyEngagedInActivityOfType(d) ? 0.5 : 1;
       })
-      .html(d => d)
+      .html(d => d.name)
 
     buttonOuterDivs.append(d => {
         const el = document.createElement('div');
@@ -435,7 +451,7 @@ function generateTodayChart(date){
     .attr('text-anchor', 'end')
     .style('font-size', labelSize + 'px')
     .style('font-family', 'Avenir')
-    .text(d => d);
+    .text(d => d.name);
 
   const xScale = d3.time.scale();
   const startTimeForAxis = todayData.activities[0] ? earlierDate(dayAtHour(date, 8), extractHour(todayData.getEarliestStartTime())) : dayAtHour(date, 8);
@@ -612,7 +628,8 @@ function formatMilliseconds(milliseconds){
 }
 
 function genSeedData(days){
-  const seedData = new TimeTracker;
+  const seedData = new TimeTracker([chess, programming, reading, writing]);
+
   const wakeUpTime = 7;
   const maxActivityTokensPerDay = 5;
   const twoHours = 2000 * 3600;
