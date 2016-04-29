@@ -100,6 +100,7 @@
 }
 
 .day {
+  background-color: #f8f8f8;
   border: 1px solid #ddd;
   box-sizing: border-box;
   display: inline-block;
@@ -134,4 +135,12 @@
   -ms-user-select: none;       /* Internet Explorer/Edge */
   user-select: none;           /* Non-prefixed version, currently
                                   not supported by any browser */
+}
+
+.modal-content {
+  border-radius: 0px;
+}
+
+.btn {
+  border-radius: 0;
 }
