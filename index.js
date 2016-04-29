@@ -1,7 +1,7 @@
 import d3 from 'd3';
 import $ from 'jquery';
 global.jQuery = $;
-require('bootstrap');
+require('bootstrap/js/modal');
 
 class ActivityToken {
   constructor(type, startTime, endTime = null){
