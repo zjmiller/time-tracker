@@ -102,6 +102,10 @@ class ActivityList {
     return dayActivitiyList;
   }
 
+  getEarliestStartTime() {
+    return this.activities.map(activity => activity.startTime).sort(d3.ascending)[0];
+  }
+
 }
 
 class DayActivityList extends ActivityList {
@@ -139,7 +143,7 @@ class TimeTracker extends ActivityList {
   groupActivitiesByDay(){
     const activitiesByDay = [];
 
-    let currentDay = extractDay(this.activities[0].startTime);
+    let currentDay = extractDay(this.getEarliestStartTime());
     activitiesByDay.push(new DayActivityList(currentDay));
 
     this.activities.forEach(activity => {
@@ -361,7 +365,7 @@ function generateTodayChart(date){
     .text(d => d);
 
   const xScale = d3.time.scale();
-  const startTimeForAxis = todayData.activities[0] ? earlierDate(dayAtHour(date, 8), extractHour(todayData.activities[0].startTime)) : dayAtHour(date, 8);
+  const startTimeForAxis = todayData.activities[0] ? earlierDate(dayAtHour(date, 8), extractHour(todayData.getEarliestStartTime())) : dayAtHour(date, 8);
   xScale.domain([startTimeForAxis, nextDayAtMidnight(date)]);
   xScale.range([0, innerWidth]);
 
