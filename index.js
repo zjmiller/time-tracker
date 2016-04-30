@@ -428,11 +428,11 @@ function generateTodayChart(date){
   const todayData = data.getAllActivitiesOnDate(date);
   const todayTypes = todayData.getListOfActivityTypes();
 
-  const barOuterHeight = 20;
-  const barInnerHeight = 10;
-  const labelSize = 14;
+  const barOuterHeight = 35;
+  const barInnerHeight = 20;
+  const labelSize = 18;
 
-  const margin = {top: 20, right: 30, bottom: 20, left: 100};
+  const margin = {top: 20, right: 30, bottom: 20, left: 120};
   const outerWidth = 900;
   const outerHeight = (todayTypes.length * barOuterHeight) + margin.top + margin.bottom;
   const innerWidth = outerWidth - margin.left - margin.right;

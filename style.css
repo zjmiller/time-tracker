@@ -60,6 +60,8 @@
 
 .activity-bar {
   cursor: pointer;
+  stroke: #333;
+  stroke-width: 2px;
 }
 
 .activity-bar:hover {
